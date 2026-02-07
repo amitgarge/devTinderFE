@@ -3,6 +3,7 @@ import axios from "axios";
 import { addUser } from "../utils/slices/userSlice";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
+import { BASE_API_URL } from "../utils/constants";
 
 const Login = () => {
   const [email, setEmail] = useState("yogesh@gmail.com");
@@ -13,7 +14,7 @@ const Login = () => {
   const handleClick = async () => {
     try {
       const result = await axios.post(
-        "http://127.0.0.1:3000/login",
+        BASE_API_URL + "login",
         {
           email,
           password,
@@ -21,7 +22,7 @@ const Login = () => {
         { withCredentials: true },
       );
       dispatch(addUser(result.data.data));
-      return navigate("/")
+      return navigate("/");
     } catch (error) {
       console.error(error);
     }
