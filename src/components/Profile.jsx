@@ -1,6 +1,9 @@
+import { useSelector } from "react-redux";
+import ProfileEdit from "./ProfileEdit";
+
 const Profile = () => {
-  return <div>
-    <h1 className="text-3xl font-bold text-center mt-10">Profile</h1>
-  </div>;
+  const userSelector = useSelector((store) => store.user);
+  console.log(userSelector);
+  return userSelector && <ProfileEdit user={userSelector} />;
 };
 export default Profile;

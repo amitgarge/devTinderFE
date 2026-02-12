@@ -6,6 +6,8 @@ import Feed from "./components/Feed";
 import "./App.css";
 import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
+import AuthLoader from "./components/AuthLoader";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -13,10 +15,14 @@ function App() {
       <Provider store={appStore}>
         <BrowserRouter>
           <Routes>
+            {/* Public Route */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Protected Route */}
+
             <Route path="/" element={<Body />}>
-              <Route path="/" element={<Feed />}/>
+              <Route index element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/login" element={<Login />} />
             </Route>
           </Routes>
         </BrowserRouter>
