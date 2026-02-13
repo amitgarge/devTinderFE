@@ -6,13 +6,14 @@ import { useDispatch } from "react-redux";
 import { addUser } from "../utils/slices/userSlice";
 
 const ProfileEdit = ({ user }) => {
-  const [firstName, setFirstName] = useState(user.firstName);
-  const [lastName, setLastName] = useState(user.lastName);
-  const [about, setAbout] = useState(user.about);
-  const [age, setAge] = useState(user.age);
-  const [gender, setGender] = useState(user.gender);
-  const [skills, setSkills] = useState(user.skills);
-  const [photoURL, setPhotoURL] = useState(user.photoURL);
+  const [firstName, setFirstName] = useState(user.firstName || "");
+  const [lastName, setLastName] = useState(user.lastName || "");
+  const [about, setAbout] = useState(user.about || "");
+  const [age, setAge] = useState(user.age || "");
+  const [gender, setGender] = useState(user.gender || "");
+  const [skills, setSkills] = useState(user.skills || []);
+  const [skillInput, setSkillInput] = useState("");
+  const [photoURL, setPhotoURL] = useState(user.photoURL || "");
   const dispatch = useDispatch();
 
   const edit = async () => {
@@ -34,6 +35,29 @@ const ProfileEdit = ({ user }) => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleSkillKeyDown = (e) => {
+    if (e.key === "Enter" && skillInput.trim()) {
+      e.preventDefault();
+
+      const newSkill = skillInput.trim();
+
+      // prevent duplicates (case insensitive)
+      const exists = skills.some(
+        (skill) => skill.toLowerCase() === newSkill.toLowerCase(),
+      );
+
+      if (!exists) {
+        setSkills([...skills, newSkill]);
+      }
+
+      setSkillInput("");
+    }
+  };
+
+  const removeSkill = (indexToRemove) => {
+    setSkills(skills.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -117,13 +141,37 @@ const ProfileEdit = ({ user }) => {
           ></textarea>
 
           <label className="label">Skills</label>
-          <input
-            type="text"
-            value={skills}
-            className="input"
-            placeholder="Skills"
-            onChange={(e) => setSkills(e.target.value)}
-          />
+
+          <div className="border rounded-lg p-3 bg-base-100">
+            {/* Skill Tags */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              {skills.map((skill, index) => (
+                <div
+                  key={index}
+                  className="badge badge-primary gap-2 px-3 py-3"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => removeSkill(index)}
+                    className="text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Input */}
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={handleSkillKeyDown}
+              placeholder="Type skill and press Enter"
+              className="input input-sm w-full"
+            />
+          </div>
           <label className="label">Photo URL</label>
           <input
             type="text"

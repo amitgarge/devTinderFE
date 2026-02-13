@@ -8,6 +8,9 @@ import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Connections from "./components/Connections";
+import Requests from "./components/Requests";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
@@ -16,6 +19,12 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public Route */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+              }}
+            />
             <Route path="/login" element={<Login />} />
 
             {/* Protected Route */}
@@ -23,6 +32,8 @@ function App() {
             <Route path="/" element={<Body />}>
               <Route index element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/connections" element={<Connections />} />
+              <Route path="/requests" element={<Requests />} />
             </Route>
           </Routes>
         </BrowserRouter>
