@@ -1,9 +1,8 @@
 import { useState } from "react";
 import UserCard from "./UserCard";
-import axios from "axios";
-import { BASE_API_URL } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/slices/userSlice";
+import axiosInstance from "../services/axiosInstance";
 
 const ProfileEdit = ({ user }) => {
   const [firstName, setFirstName] = useState(user.firstName || "");
@@ -14,38 +13,34 @@ const ProfileEdit = ({ user }) => {
   const [skills, setSkills] = useState(user.skills || []);
   const [skillInput, setSkillInput] = useState("");
   const [photoURL, setPhotoURL] = useState(user.photoURL || "");
+  const [saving, setSaving] = useState(false);
+
   const dispatch = useDispatch();
 
   const edit = async () => {
-    try {
-      const res = await axios.patch(
-        BASE_API_URL + "profile/edit",
-        {
-          firstName,
-          lastName,
-          about,
-          age,
-          gender,
-          skills,
-          photoURL,
-        },
-        { withCredentials: true },
-      );
-      dispatch(addUser(res.data.data));
-    } catch (error) {
-      console.error(error);
-    }
+    setSaving(true);
+
+    const res = await axiosInstance.patch("/profile/edit", {
+      firstName,
+      lastName,
+      about,
+      age,
+      gender,
+      skills,
+      photoURL,
+    });
+
+    dispatch(addUser(res.data.data));
+    setSaving(false);
   };
 
   const handleSkillKeyDown = (e) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
-
       const newSkill = skillInput.trim();
 
-      // prevent duplicates (case insensitive)
       const exists = skills.some(
-        (skill) => skill.toLowerCase() === newSkill.toLowerCase(),
+        (skill) => skill.toLowerCase() === newSkill.toLowerCase()
       );
 
       if (!exists) {
@@ -61,135 +56,164 @@ const ProfileEdit = ({ user }) => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="flex items-center justify-center w-86 h-screen mx-5">
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-          <legend className="fieldset-legend text-xl">Profile Edit</legend>
+    <div className="min-h-screen bg-linear-to-br from-base-100 to-base-200 py-16">
+      <div className="max-w-6xl mx-auto px-4">
 
-          <label className="label">First Name</label>
-          <input
-            type="text"
-            value={firstName}
-            className="input"
-            placeholder="First Name"
-            onChange={(e) => setFirstName(e.target.value)}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-          <label className="label">Last Name</label>
-          <input
-            type="text"
-            value={lastName}
-            className="input"
-            placeholder="Last Name"
-            onChange={(e) => setLastName(e.target.value)}
-          />
+          {/* ================= FORM ================= */}
+          <div className="lg:col-span-7">
+            <div className="card bg-base-100 shadow-xl rounded-2xl p-8 max-w-2xl">
+              <h2 className="text-2xl font-bold mb-8">Edit Profile</h2>
 
-          <label className="label">Gender</label>
-          <div className="flex gap-6">
-            <label className="label cursor-pointer gap-2">
-              <input
-                type="radio"
-                name="gender"
-                value="male"
-                className="radio radio-primary"
-                checked={gender === "male"}
-                onChange={(e) => setGender(e.target.value)}
-              />
-              <span>Male</span>
-            </label>
+              <div className="space-y-6">
 
-            <label className="label cursor-pointer gap-2">
-              <input
-                type="radio"
-                name="gender"
-                value="female"
-                className="radio radio-primary"
-                checked={gender === "female"}
-                onChange={(e) => setGender(e.target.value)}
-              />
-              <span>Female</span>
-            </label>
-
-            <label className="label cursor-pointer gap-2">
-              <input
-                type="radio"
-                name="gender"
-                value="others"
-                className="radio radio-primary"
-                checked={gender === "others"}
-                onChange={(e) => setGender(e.target.value)}
-              />
-              <span>Others</span>
-            </label>
-          </div>
-
-          <label className="label">Age</label>
-          <input
-            type="text"
-            value={age}
-            className="input"
-            placeholder="Age"
-            onChange={(e) => setAge(e.target.value)}
-          />
-
-          <label className="label">About</label>
-          <textarea
-            className="textarea"
-            placeholder="Bio"
-            value={about}
-            onChange={(e) => setAbout(e.target.value)}
-          ></textarea>
-
-          <label className="label">Skills</label>
-
-          <div className="border rounded-lg p-3 bg-base-100">
-            {/* Skill Tags */}
-            <div className="flex flex-wrap gap-2 mb-2">
-              {skills.map((skill, index) => (
-                <div
-                  key={index}
-                  className="badge badge-primary gap-2 px-3 py-3"
-                >
-                  {skill}
-                  <button
-                    type="button"
-                    onClick={() => removeSkill(index)}
-                    className="text-xs"
-                  >
-                    ✕
-                  </button>
+                {/* First Name */}
+                <div>
+                  <label className="label font-medium">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
-              ))}
+
+                {/* Last Name */}
+                <div>
+                  <label className="label font-medium">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="label font-medium">Gender</label>
+                  <div className="flex flex-wrap gap-6">
+                    {["male", "female", "others"].map((g) => (
+                      <label key={g} className="label cursor-pointer gap-2">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value={g}
+                          className="radio radio-primary"
+                          checked={gender === g}
+                          onChange={(e) => setGender(e.target.value)}
+                        />
+                        <span className="capitalize">{g}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Age */}
+                <div>
+                  <label className="label font-medium">Age</label>
+                  <input
+                    type="number"
+                    value={age}
+                    className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    onChange={(e) => setAge(e.target.value)}
+                  />
+                </div>
+
+                {/* About */}
+                <div>
+                  <label className="label font-medium">About</label>
+                  <textarea
+                    className="textarea textarea-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    rows={4}
+                    value={about}
+                    onChange={(e) => setAbout(e.target.value)}
+                  ></textarea>
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <label className="label font-medium">Skills</label>
+
+                  <div className="border border-base-300 rounded-xl p-4 bg-base-200">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="badge badge-primary gap-2 px-3 py-3"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(index)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <input
+                      type="text"
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={handleSkillKeyDown}
+                      placeholder="Type skill and press Enter"
+                      className="input input-bordered input-sm w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Photo URL */}
+                <div>
+                  <label className="label font-medium">Photo URL</label>
+                  <input
+                    type="text"
+                    value={photoURL}
+                    className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    onChange={(e) => setPhotoURL(e.target.value)}
+                  />
+                </div>
+
+                {/* Save Button */}
+                <button
+                  className="btn btn-primary w-full mt-4 shadow-md hover:shadow-lg"
+                  onClick={edit}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+
+              </div>
             </div>
-
-            {/* Input */}
-            <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={handleSkillKeyDown}
-              placeholder="Type skill and press Enter"
-              className="input input-sm w-full"
-            />
           </div>
-          <label className="label">Photo URL</label>
-          <input
-            type="text"
-            value={photoURL}
-            className="input"
-            placeholder="PhotoURL"
-            onChange={(e) => setPhotoURL(e.target.value)}
-          />
 
-          <button className="btn btn-neutral mt-4" onClick={edit}>
-            Edit Profile
-          </button>
-        </fieldset>
+          {/* ================= PREVIEW ================= */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+            <div className="w-full max-w-md sticky top-24">
+              <UserCard
+                user={{
+                  firstName,
+                  lastName,
+                  age,
+                  gender,
+                  photoURL,
+                  about,
+                  skills,
+                }}
+              />
+            </div>
+          </div>
+
+        </div>
       </div>
-      <UserCard
-        user={{ firstName, lastName, age, gender, photoURL, about, skills }}
-      />
     </div>
   );
 };
+
 export default ProfileEdit;

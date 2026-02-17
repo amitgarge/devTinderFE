@@ -1,70 +1,72 @@
-import axios from "axios";
-import { BASE_API_URL } from "../utils/constants";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addRequest, removeRequest } from "../utils/slices/requestSlice";
+import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
 
 const Requests = () => {
   const dispatch = useDispatch();
   const requestData = useSelector((store) => store.request);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const { data } = await axios.get(
-          BASE_API_URL + "user/requests/received",
-          { withCredentials: true },
-        );
-
-        dispatch(addRequest(data.data));
+        const res = await axiosInstance.get("/user/requests/received");
+        dispatch(addRequest(res.data.data));
       } catch (error) {
-        const message =
-          error.response?.data?.message ||
-          error.message ||
-          "Something went wrong!";
-
-        toast.error(message);
+        toast.error("Failed to load requests");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchRequests();
   }, [dispatch]);
 
-  // 🔹 Example handlers (replace with real API calls)
   const handleRequest = async (status, id) => {
-    const promise = axios.post(
-      `${BASE_API_URL}request/review/${status}/${id}`,
-      {},
-      { withCredentials: true },
+    const promise = axiosInstance.post(
+      `/request/review/${status}/${id}`,
+      {}
     );
 
-    await toast.promise(promise, {
+    toast.promise(promise, {
       loading: "Processing...",
-      success: "Request updated!",
+      success:
+        status === "accepted"
+          ? "Request accepted 🎉"
+          : "Request rejected",
       error: "Action failed",
     });
 
+    await promise;
     dispatch(removeRequest(id));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-base-100 to-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-base-200 py-12">
-      <div className="max-w-md mx-auto px-4">
-        {/* Page Title */}
-        <h1 className="text-2xl font-bold text-center mb-8">
+    <div className="min-h-screen bg-linear-to-br from-base-100 to-base-200 py-16">
+      <div className="max-w-6xl mx-auto px-4">
+
+        <h1 className="text-3xl font-bold mb-12 text-center">
           Pending Requests
         </h1>
 
-        {/* Empty State */}
         {requestData?.length === 0 && (
-          <div className="text-center text-base-content/60">
+          <div className="text-center text-base-content/60 text-lg">
             No pending requests
           </div>
         )}
 
-        {/* Requests List */}
-        <ul className="bg-base-100 rounded-xl shadow-sm divide-y">
+        <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+
           {requestData?.map((request) => {
             const {
               _id,
@@ -78,65 +80,67 @@ const Requests = () => {
             } = request.fromUserId;
 
             return (
-              <li
-                key={_id}
-                className="flex items-start gap-4 p-4 hover:bg-base-200 transition duration-200"
+              <div
+                key={request._id}
+                className="card bg-base-100 shadow-md rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               >
-                {/* Avatar */}
-                <img
-                  className="w-14 h-14 rounded-full object-cover"
-                  src={photoURL}
-                  alt="profile"
-                />
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    className="w-14 h-14 rounded-full object-cover bg-base-200 ring ring-primary ring-offset-2 ring-offset-base-100"
+                    src={photoURL}
+                    alt="profile"
+                  />
 
-                {/* User Info */}
-                <div className="flex-1 space-y-1">
-                  <div className="font-semibold text-sm leading-tight">
-                    {firstName} {lastName}
+                  <div>
+                    <div className="font-semibold text-lg">
+                      {firstName} {lastName}
+                    </div>
+
+                    <div className="text-sm text-base-content/60">
+                      {gender} • {age}
+                    </div>
                   </div>
-
-                  <div className="text-xs text-base-content/60">
-                    {gender} • {age}
-                  </div>
-
-                  {/* Skills */}
-                  <div className="flex flex-wrap gap-1">
-                    {skills?.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="badge badge-outline badge-xs"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* About */}
-                  <p className="text-xs text-base-content/70 mt-1 line-clamp-2">
-                    {about}
-                  </p>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-col gap-2 justify-center">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {skills?.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="badge badge-outline badge-primary"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="text-sm text-base-content/70 line-clamp-3 mb-4">
+                  {about}
+                </p>
+
+                <div className="flex gap-3 mt-auto">
                   <button
-                    onClick={() => handleRequest("accepted", request._id)}
-                    className="btn btn-sm btn-success"
+                    onClick={() =>
+                      handleRequest("accepted", request._id)
+                    }
+                    className="btn btn-sm btn-primary flex-1"
                   >
                     Accept
                   </button>
 
                   <button
-                    onClick={() => handleRequest("rejected", request._id)}
-                    className="btn btn-sm btn-outline btn-error"
+                    onClick={() =>
+                      handleRequest("rejected", request._id)
+                    }
+                    className="btn btn-sm btn-outline btn-error flex-1"
                   >
                     Reject
                   </button>
                 </div>
-              </li>
+              </div>
             );
           })}
-        </ul>
+
+        </div>
       </div>
     </div>
   );

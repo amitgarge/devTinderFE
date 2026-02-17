@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import axios from "axios";
+import axiosInstance from "../services/axiosInstance";
 import { addUser } from "../utils/slices/userSlice";
 
 const AuthLoader = ({ children }) => {
@@ -10,10 +10,8 @@ const AuthLoader = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await axios.get("/profile/view", {
-          withCredentials: true,
-        });        
-        dispatch(addUser(res.data));
+        const res = axiosInstance.post("/profile/view");
+        dispatch(addUser(res.data.data));
       } catch (err) {
         console.log(err);
       } finally {

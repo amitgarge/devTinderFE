@@ -17,23 +17,22 @@ function App() {
     <>
       <Provider store={appStore}>
         <BrowserRouter>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+            }}
+          />
           <Routes>
             {/* Public Route */}
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3000,
-              }}
-            />
             <Route path="/login" element={<Login />} />
-
             {/* Protected Route */}
 
             <Route path="/" element={<Body />}>
               <Route index element={<Feed />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/connections" element={<Connections />} />
-              <Route path="/requests" element={<Requests />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="connections" element={<Connections />} />
+              <Route path="requests" element={<Requests />} />
             </Route>
           </Routes>
         </BrowserRouter>

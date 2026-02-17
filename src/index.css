@@ -1,2 +1,29 @@
 @import "tailwindcss";
+
 @plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "devmodern";
+  default: true;
+
+  /* Brand */
+  --color-primary: #4f46e5; /* Indigo */
+  --color-secondary: #2563eb; /* Blue */
+  --color-accent: #0ea5e9; /* Sky */
+
+  /* Surfaces */
+  --color-base-100: #f1f5f9; /* Soft slate */
+  --color-base-200: #e2e8f0;
+  --color-base-300: #cbd5e1;
+
+  --color-neutral: #0f172a;
+
+  /* States */
+  --color-info: #3b82f6;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+}
+html {
+  scroll-behavior: smooth;
+}
