@@ -3,6 +3,7 @@ import UserCard from "./UserCard";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
+import toast from "react-hot-toast";
 
 const ProfileEdit = ({ user }) => {
   const [firstName, setFirstName] = useState(user.firstName || "");
@@ -18,20 +19,33 @@ const ProfileEdit = ({ user }) => {
   const dispatch = useDispatch();
 
   const edit = async () => {
-    setSaving(true);
+    try {
+      setSaving(true);
 
-    const res = await axiosInstance.patch("/profile/edit", {
-      firstName,
-      lastName,
-      about,
-      age,
-      gender,
-      skills,
-      photoURL,
-    });
+      const promise = axiosInstance.patch("/profile/edit", {
+        firstName,
+        lastName,
+        about,
+        age,
+        gender,
+        skills,
+        photoURL,
+      });
 
-    dispatch(addUser(res.data.data));
-    setSaving(false);
+      await toast.promise(promise, {
+        loading: "Updating profile...",
+        success: "Profile updated successfully 🎉",
+        error: "Failed to update profile",
+      });
+
+      const res = await promise;
+
+      dispatch(addUser(res.data.data));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSkillKeyDown = (e) => {
@@ -40,7 +54,7 @@ const ProfileEdit = ({ user }) => {
       const newSkill = skillInput.trim();
 
       const exists = skills.some(
-        (skill) => skill.toLowerCase() === newSkill.toLowerCase()
+        (skill) => skill.toLowerCase() === newSkill.toLowerCase(),
       );
 
       if (!exists) {
@@ -58,16 +72,13 @@ const ProfileEdit = ({ user }) => {
   return (
     <div className="min-h-screen bg-linear-to-br from-base-100 to-base-200 py-16">
       <div className="max-w-6xl mx-auto px-4">
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-
           {/* ================= FORM ================= */}
           <div className="lg:col-span-7">
             <div className="card bg-base-100 shadow-xl rounded-2xl p-8 max-w-2xl">
               <h2 className="text-2xl font-bold mb-8">Edit Profile</h2>
 
               <div className="space-y-6">
-
                 {/* First Name */}
                 <div>
                   <label className="label font-medium">First Name</label>
@@ -188,7 +199,6 @@ const ProfileEdit = ({ user }) => {
                     "Save Changes"
                   )}
                 </button>
-
               </div>
             </div>
           </div>
@@ -209,7 +219,6 @@ const ProfileEdit = ({ user }) => {
               />
             </div>
           </div>
-
         </div>
       </div>
     </div>
