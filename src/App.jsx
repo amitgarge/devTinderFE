@@ -31,15 +31,12 @@ function App() {
       <BrowserRouter>
         <NavigatorSetter />
 
-        <Toaster
-          position="top-right"
-          toastOptions={{ duration: 3000 }}
-        />
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
         <ErrorBoundary>
           <Routes>
-            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Body />}>
+              <Route path="/login" element={<Login />} />
               <Route index element={<Feed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="connections" element={<Connections />} />
