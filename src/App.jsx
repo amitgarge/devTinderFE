@@ -25,38 +25,36 @@ function App() {
   };
   return (
     <Provider store={appStore}>
-      {" "}
-      <BrowserRouter basename="/">
-        {" "}
-        <NavigatorSetter />{" "}
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />{" "}
+      <BrowserRouter>
+        <NavigatorSetter />
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Routes>
-          {" "}
-          {/* Public Route */} <Route path="/login" element={<Login />} />{" "}
-          {/* Protected Routes */}{" "}
+          {/* Protected Routes FIRST */}
           <Route
             path="/"
             element={
               <AuthLoader>
-                {" "}
                 <ProtectedRoute>
-                  {" "}
                   <ErrorBoundary>
-                    {" "}
-                    <Body />{" "}
-                  </ErrorBoundary>{" "}
-                </ProtectedRoute>{" "}
+                    <Body />
+                  </ErrorBoundary>
+                </ProtectedRoute>
               </AuthLoader>
             }
           >
-            {" "}
-            <Route index element={<Feed />} />{" "}
-            <Route path="profile" element={<Profile />} />{" "}
-            <Route path="connections" element={<Connections />} />{" "}
-            <Route path="requests" element={<Requests />} />{" "}
-          </Route>{" "}
-        </Routes>{" "}
-      </BrowserRouter>{" "}
+            <Route index element={<Feed />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="connections" element={<Connections />} />
+            <Route path="requests" element={<Requests />} />
+          </Route>
+
+          {/* Public Route AFTER */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Optional fallback */}
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </BrowserRouter>
     </Provider>
   );
 }
