@@ -14,7 +14,7 @@ const Requests = () => {
       try {
         const res = await axiosInstance.get("/user/requests/received");
         dispatch(addRequest(res.data.data));
-      } catch (error) {
+      } catch {
         toast.error("Failed to load requests");
       } finally {
         setLoading(false);
