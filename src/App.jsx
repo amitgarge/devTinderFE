@@ -49,7 +49,7 @@ function App() {
           </Route>
 
           {/* Public Route AFTER */}
-          <Route path="/login" element={<Login />} />
+          <Route path="/auth/login" element={<Login />} />
 
           {/* Optional fallback */}
           <Route path="*" element={<Login />} />
