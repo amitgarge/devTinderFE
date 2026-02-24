@@ -12,7 +12,7 @@ const AuthLoader = ({ children }) => {
       try {
         const res = await axiosInstance.get("/profile/view");
         dispatch(addUser(res.data.data));
-      } catch (error) {
+      } catch {
         dispatch(removeUser());
       } finally {
         setLoading(false);

@@ -12,11 +12,24 @@ import Requests from "./components/Requests";
 import AuthLoader from "./components/AuthLoader";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Toaster } from "react-hot-toast";
+import { setNavigator } from "./utils/navigateHelper";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 function App() {
+  const NavigatorSetter = () => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      setNavigator(navigate);
+    }, [navigate]);
+
+    return null;
+  };
   return (
     <Provider store={appStore}>
       <BrowserRouter basename="/">
+        <NavigatorSetter />
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
         <Routes>
