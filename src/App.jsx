@@ -16,7 +16,7 @@ import { Toaster } from "react-hot-toast";
 function App() {
   return (
     <Provider store={appStore}>
-      <BrowserRouter>
+      <BrowserRouter basename="/">
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
         <Routes>
