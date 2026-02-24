@@ -15,49 +15,49 @@ import { Toaster } from "react-hot-toast";
 import { setNavigator } from "./utils/navigateHelper";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-
 function App() {
   const NavigatorSetter = () => {
     const navigate = useNavigate();
-
     useEffect(() => {
       setNavigator(navigate);
     }, [navigate]);
-
     return null;
   };
   return (
     <Provider store={appStore}>
+      {" "}
       <BrowserRouter basename="/">
-        <NavigatorSetter />
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-
+        {" "}
+        <NavigatorSetter />{" "}
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />{" "}
         <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
-
-          {/* Protected Routes */}
+          {" "}
+          {/* Public Route */} <Route path="/login" element={<Login />} />{" "}
+          {/* Protected Routes */}{" "}
           <Route
             path="/"
             element={
               <AuthLoader>
+                {" "}
                 <ProtectedRoute>
+                  {" "}
                   <ErrorBoundary>
-                    <Body />
-                  </ErrorBoundary>
-                </ProtectedRoute>
+                    {" "}
+                    <Body />{" "}
+                  </ErrorBoundary>{" "}
+                </ProtectedRoute>{" "}
               </AuthLoader>
             }
           >
-            <Route index element={<Feed />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="connections" element={<Connections />} />
-            <Route path="requests" element={<Requests />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+            {" "}
+            <Route index element={<Feed />} />{" "}
+            <Route path="profile" element={<Profile />} />{" "}
+            <Route path="connections" element={<Connections />} />{" "}
+            <Route path="requests" element={<Requests />} />{" "}
+          </Route>{" "}
+        </Routes>{" "}
+      </BrowserRouter>{" "}
     </Provider>
   );
 }
-
 export default App;
