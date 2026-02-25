@@ -128,7 +128,7 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const endpoint = isLoginForm ? "/auth/login" : "/auth/signup";
+      const endpoint = isLoginForm ? "/login" : "/signup";
 
       const payload = isLoginForm
         ? { email: formData.email, password: formData.password }

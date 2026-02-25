@@ -9,9 +9,9 @@ const NavBar = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await axiosInstance.post("/auth/logout");
+    await axiosInstance.post("/logout");
     dispatch(removeUser());
-    navigate("/auth/login");
+    navigate("/login");
   };
 
   return (

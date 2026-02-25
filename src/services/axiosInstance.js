@@ -20,7 +20,7 @@ axiosInstance.interceptors.response.use(
     const message = error.response?.data?.message || "Something Went wrong";
 
     if (error.response?.status === 401) {
-      navigateTo("/auth/login");
+      navigateTo("/login");
     }
     toast.error(message);
     return Promise.reject(error);
