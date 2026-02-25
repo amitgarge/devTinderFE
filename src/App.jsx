@@ -35,16 +35,21 @@ function App() {
 
         <ErrorBoundary>
           <Routes>
+
+            {/* PUBLIC */}
+            <Route path="/login" element={<Login />} />
+
+            {/* PROTECTED LAYOUT */}
             <Route path="/" element={<Body />}>
-              <Route path="/login" element={<Login />} />
               <Route index element={<Feed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="connections" element={<Connections />} />
               <Route path="requests" element={<Requests />} />
             </Route>
 
-            {/* Fallback */}
+            {/* FALLBACK */}
             <Route path="*" element={<Login />} />
+
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>

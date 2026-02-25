@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { addUser } from "../utils/slices/userSlice";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
 

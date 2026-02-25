@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { removeUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
 
