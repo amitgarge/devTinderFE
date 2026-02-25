@@ -34,13 +34,21 @@ function App() {
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
         <ErrorBoundary>
-          <Routes>
-
-            {/* PUBLIC */}
-            <Route path="/login" element={<Login />} />
+          <Routes>           
 
             {/* PROTECTED LAYOUT */}
-            <Route path="/" element={<Body />}>
+            <Route path="/login" element={<Login />} />
+
+            <Route
+              path="/"
+              element={
+                <AuthLoader>
+                  <ProtectedRoute>
+                    <Body />
+                  </ProtectedRoute>
+                </AuthLoader>
+              }
+            >
               <Route index element={<Feed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="connections" element={<Connections />} />
@@ -49,7 +57,6 @@ function App() {
 
             {/* FALLBACK */}
             <Route path="*" element={<Login />} />
-
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>
