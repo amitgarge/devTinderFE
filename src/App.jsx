@@ -10,6 +10,8 @@ import Feed from "./components/Feed";
 import Connections from "./components/Connections";
 import Requests from "./components/Requests";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AuthLoader from "./components/AuthLoader";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import appStore from "./utils/appStore";
 import { setNavigator } from "./utils/navigateHelper";
