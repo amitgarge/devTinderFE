@@ -34,11 +34,11 @@ function App() {
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
         <ErrorBoundary>
-          <Routes>           
-
-            {/* PROTECTED LAYOUT */}
+          <Routes>
+            {/* PUBLIC */}
             <Route path="/login" element={<Login />} />
 
+            {/* PROTECTED */}
             <Route
               path="/"
               element={
