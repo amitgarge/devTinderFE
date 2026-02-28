@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import appStore from "./utils/appStore";
 import { setNavigator } from "./utils/navigateHelper";
 import "./App.css";
+import Chat from "./components/Chat";
 
 function NavigatorSetter() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="connections" element={<Connections />} />
               <Route path="requests" element={<Requests />} />
+              <Route path="chat/:targetUserId" element={<Chat/>} />
             </Route>
 
             {/* FALLBACK */}

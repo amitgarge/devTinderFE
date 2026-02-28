@@ -10,4 +10,8 @@ export default defineConfig({
     globals: true,
     setupFiles: "./src/tests/setup.js",
   },
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
 });
