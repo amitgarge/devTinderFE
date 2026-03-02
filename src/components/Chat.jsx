@@ -1,87 +1,123 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { connectSocket, disconnectSocket } from "../services/socket";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import useChat from "../hooks/useChat";
+import { useEffect, useRef } from "react";
 
 const Chat = () => {
+  const containerRef = useRef(null);
+  const bottomRef = useRef(null);
+  const loadingOlderRef = useRef(false);
+  const prevScrollHeightRef = useRef(0);
+
   const { targetUserId } = useParams();
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+
   const navigate = useNavigate();
 
-  const currentUser = useSelector((store) => store.user);
-  const connections = useSelector((store) => store.connection);
-
-  const targetUser = connections?.find((user) => user._id === targetUserId);
+  const {
+    currentUser,
+    targetUser,
+    messages,
+    message,
+    setMessage,
+    sendMessage,
+    isTyping,
+    isOnline,
+    lastSeen,
+    loadOlderMessages,
+    hasMore,
+  } = useChat(targetUserId);
 
   useEffect(() => {
-    const socket = connectSocket();
+    const container = containerRef.current;
 
-    const handleConnect = () => {
-      console.log("Connected: ", socket.id);
+    if (!container) return;
 
-      socket.emit("join_room", {
-        targetUserId,
+    // CASE 1: loading older messages → preserve position
+    if (loadingOlderRef.current) {
+      const newScrollHeight = container.scrollHeight;
+
+      const prevHeight = prevScrollHeightRef.current;
+
+      container.scrollTop = newScrollHeight - prevHeight;
+
+      loadingOlderRef.current = false;
+    }
+
+    // CASE 2: new realtime message → scroll bottom
+    else {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
       });
-    };
-
-    const handleReceiveMessage = (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    };
-
-    socket.on("connect", handleConnect);
-    socket.on("receive_message", handleReceiveMessage);
-
-    return () => {
-      socket.off("connect", handleConnect);
-      socket.off("receive_message", handleReceiveMessage);
-      disconnectSocket();
-    };
-  }, [targetUserId]);
-
-  const handleSend = () => {
-    if (!message.trim()) return;
-
-    const socket = connectSocket();
-
-    socket.emit("send_message", {
-      targetUserId,
-      text: message,
-    });
-
-    setMessage("");
-  };
+    }
+  }, [messages]);
 
   return (
-    <div className="min-h-screen bg-base-200 flex justify-center items-start py-6">
-      <div className="w-full max-w-3xl h-[80vh] bg-base-100 shadow-xl rounded-xl flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-base-200 flex justify-center py-6">
+      <div className="w-full max-w-3xl h-[80vh] bg-base-100 shadow-xl rounded-xl flex flex-col">
         {/* Header */}
-        <div className="navbar bg-base-100 border-b px-4">
+        <div className="navbar border-b">
           <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}>
             ← Back
           </button>
 
-          <div className="ml-4 font-semibold flex items-center gap-3">
+          <div className="ml-4 flex items-center gap-3">
             {targetUser?.photoURL && (
               <img src={targetUser.photoURL} className="w-8 h-8 rounded-full" />
             )}
 
-            <span>
-              {targetUser
-                ? `${targetUser.firstName} ${targetUser.lastName}`
-                : "Chat"}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold">
+                {targetUser
+                  ? `${targetUser.firstName} ${targetUser.lastName}`
+                  : "Loading..."}
+              </span>
+
+              <span className="text-xs flex items-center gap-2">
+                {isTyping ? (
+                  "Typing..."
+                ) : isOnline ? (
+                  <>
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Online
+                  </>
+                ) : lastSeen ? (
+                  `Last seen ${new Date(lastSeen).toLocaleString()}`
+                ) : null}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg, index) => {
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-4"
+        >
+          {/* Load older button */}
+          {hasMore && (
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  const container = containerRef.current;
+
+                  loadingOlderRef.current = true;
+
+                  prevScrollHeightRef.current = container.scrollHeight;
+
+                  loadOlderMessages();
+                }}
+                className="btn btn-sm btn-outline"
+              >
+                Load older messages
+              </button>
+            </div>
+          )}
+
+          {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?._id;
 
             return (
               <div
-                key={index}
+                key={msg._id}
                 className={`chat ${isMe ? "chat-end" : "chat-start"}`}
               >
                 {!isMe && (
@@ -91,26 +127,26 @@ const Chat = () => {
                     </div>
                   </div>
                 )}
-                <div className="chat-bubble chat-bubble-primary">
-                  {msg.text}
-                </div>
+
+                <div className="chat-bubble">{msg.text}</div>
               </div>
             );
           })}
+
+          <div ref={bottomRef} />
         </div>
 
         {/* Input */}
         <div className="border-t p-3 flex gap-2">
           <input
-            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type message..."
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Type a message..."
             className="input input-bordered flex-1"
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
 
-          <button onClick={handleSend} className="btn btn-primary">
+          <button onClick={sendMessage} className="btn btn-primary">
             Send
           </button>
         </div>
