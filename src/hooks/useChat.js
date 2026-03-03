@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import axiosInstance from "../services/axiosInstance";
-import { connectSocket, disconnectSocket } from "../services/socket";
+import { connectSocket } from "../services/socket";
 import { addConnection } from "../utils/slices/connectionSlice";
 
 const useChat = (targetUserId) => {
@@ -64,27 +64,30 @@ const useChat = (targetUserId) => {
   }, [targetUserId]);
 
   // Socket connection
+  // Socket connection
   useEffect(() => {
     if (!targetUserId) return;
 
     const socket = connectSocket();
 
-    const handleConnect = () => {
+    const requestPresence = () => {
+      socket.emit("get_online_users");
+    };
+
+    const joinRoomAndSync = () => {
       socket.emit("join_room", { targetUserId });
+      requestPresence();
     };
 
     const handleReceive = (msg) => {
       setMessages((prev) => {
         const exists = prev.some((m) => m._id === msg._id);
-
         if (exists) return prev;
-
         return [...prev, msg];
       });
     };
 
-    socket.on("connect", handleConnect);
-
+    // Attach listeners FIRST
     socket.on("receive_message", handleReceive);
 
     socket.on("user_typing", () => {
@@ -100,35 +103,56 @@ const useChat = (targetUserId) => {
     });
 
     socket.on("user_online", ({ userId }) => {
-      if (userId === targetUserId) setIsOnline(true);
+      if (userId === targetUserId) {
+        setIsOnline(true);
+      }
     });
 
     socket.on("user_offline", ({ userId, lastSeen }) => {
       if (userId === targetUserId) {
         setIsOnline(false);
-
         setSocketLastSeen(lastSeen);
       }
     });
 
+    // If socket just connected
+    socket.on("connect", joinRoomAndSync);
+
+    // If socket is ALREADY connected
+    if (socket.connected) {
+      joinRoomAndSync();
+    }
+
     return () => {
-      socket.off("connect", handleConnect);
-
+      socket.off("connect", joinRoomAndSync);
       socket.off("receive_message", handleReceive);
-
       socket.off("user_typing");
-
       socket.off("user_stop_typing");
-
       socket.off("online_users");
-
       socket.off("user_online");
-
       socket.off("user_offline");
-
-      disconnectSocket();
     };
   }, [targetUserId]);
+
+  useEffect(() => {
+    if (!targetUserId) return;
+
+    // If user is offline and no realtime lastSeen yet
+    if (!isOnline && !socketLastSeen) {
+      const fetchLastSeen = async () => {
+        try {
+          const res = await axiosInstance.get(
+            `/user/last-seen/${targetUserId}`,
+          );
+          setSocketLastSeen(res.data.lastSeen);
+        } catch {
+          console.error("Last seen fetch failed");
+        }
+      };
+
+      fetchLastSeen();
+    }
+  }, [targetUserId, isOnline, socketLastSeen]);
 
   const handleTyping = (value) => {
     setMessage(value);
