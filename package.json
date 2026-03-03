@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "kill-port 5173 && vite",
     "build": "vite build",
     "start": "serve -s dist -l 3000",
     "lint": "eslint .",
@@ -22,6 +22,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.13.1",
     "serve": "^14.2.5",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "eslint-plugin-vitest": "^0.5.4",
     "globals": "^16.5.0",
     "jsdom": "^28.1.0",
+    "kill-port": "^2.0.1",
     "vite": "^7.2.4",
     "vitest": "^4.0.18"
   }

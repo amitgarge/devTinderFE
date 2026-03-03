@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { removeUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
+import { disconnectSocket } from "../services/socket";
 
 const NavBar = () => {
   const user = useSelector((state) => state.user);
@@ -10,6 +11,7 @@ const NavBar = () => {
 
   const handleLogout = async () => {
     await axiosInstance.post("/auth/logout");
+    disconnectSocket();
     dispatch(removeUser());
     navigate("/login");
   };
@@ -17,7 +19,6 @@ const NavBar = () => {
   return (
     <div className="bg-base-100 border-b border-base-300">
       <div className="navbar max-w-6xl mx-auto px-4">
-
         {/* Brand */}
         <div className="flex-1">
           <Link
@@ -31,14 +32,9 @@ const NavBar = () => {
         {/* Right Section */}
         {user && (
           <div className="flex items-center gap-4">
-
             {/* Avatar Dropdown */}
             <div className="dropdown dropdown-end">
-              <div
-                tabIndex={0}
-                role="button"
-                className="avatar cursor-pointer"
-              >
+              <div tabIndex={0} role="button" className="avatar cursor-pointer">
                 <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                   <img alt="User" src={user.photoURL} />
                 </div>
@@ -58,10 +54,7 @@ const NavBar = () => {
                   <Link to="/requests">Requests</Link>
                 </li>
                 <li className="border-t border-base-300 mt-1 pt-1">
-                  <button
-                    onClick={handleLogout}
-                    className="text-error"
-                  >
+                  <button onClick={handleLogout} className="text-error">
                     Logout
                   </button>
                 </li>

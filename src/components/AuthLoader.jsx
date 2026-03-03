@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { addUser, removeUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
+import { connectSocket } from "../services/socket";
 
 const AuthLoader = ({ children }) => {
   const dispatch = useDispatch();
@@ -11,7 +12,8 @@ const AuthLoader = ({ children }) => {
     const hydrateUser = async () => {
       try {
         const res = await axiosInstance.get("/profile/view");
-        dispatch(addUser(res.data.data));
+        dispatch(addUser(res.data.data));        
+        connectSocket();
       } catch {
         dispatch(removeUser());
       } finally {
