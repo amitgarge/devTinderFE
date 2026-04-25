@@ -16,6 +16,12 @@ const NavBar = () => {
     navigate("/login");
   };
 
+  const handleCloseDropDown = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
   return (
     <div className="bg-base-100 border-b border-base-300">
       <div className="navbar max-w-6xl mx-auto px-4">
@@ -55,16 +61,33 @@ const NavBar = () => {
                 className="menu menu-sm dropdown-content mt-3 p-2 shadow-lg bg-base-100 rounded-xl w-48 border border-base-300"
               >
                 <li>
-                  <Link to="/profile">Profile</Link>
+                  <Link to="/" onClick={handleCloseDropDown}>
+                    Home
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/connections">Connections</Link>
+                  <Link to="/profile" onClick={handleCloseDropDown}>
+                    Profile
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/requests">Requests</Link>
+                  <Link to="/connections" onClick={handleCloseDropDown}>
+                    Connections
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/requests" onClick={handleCloseDropDown}>
+                    Requests
+                  </Link>
                 </li>
                 <li className="border-t border-base-300 mt-1 pt-1">
-                  <button onClick={handleLogout} className="text-error">
+                  <button
+                    onClick={() => {
+                      handleCloseDropDown();
+                      handleLogout();
+                    }}
+                    className="text-error"
+                  >
                     Logout
                   </button>
                 </li>

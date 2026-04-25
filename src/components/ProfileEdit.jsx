@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { addUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const ProfileEdit = ({ user }) => {
   const [firstName, setFirstName] = useState(user.firstName || "");
@@ -17,6 +18,8 @@ const ProfileEdit = ({ user }) => {
   const [saving, setSaving] = useState(false);
 
   const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   const edit = async () => {
     try {
@@ -32,15 +35,14 @@ const ProfileEdit = ({ user }) => {
         photoURL,
       });
 
-      await toast.promise(promise, {
+      const res = await toast.promise(promise, {
         loading: "Updating profile...",
         success: "Profile updated successfully 🎉",
         error: "Failed to update profile",
       });
 
-      const res = await promise;
-
       dispatch(addUser(res.data.data));
+      navigate("/");
     } catch (error) {
       console.error(error);
     } finally {
