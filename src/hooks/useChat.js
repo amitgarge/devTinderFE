@@ -53,8 +53,7 @@ const useChat = (targetUserId) => {
     const fetchMessages = async () => {
       const res = await axiosInstance.get(`/messages/${targetUserId}?limit=10`);
 
-      setMessages(res.data.data);
-
+      setMessages(res.data.data || []);
       setCursor(res.data.nextCursor);
 
       setHasMore(!!res.data.nextCursor);
@@ -63,7 +62,6 @@ const useChat = (targetUserId) => {
     fetchMessages();
   }, [targetUserId]);
 
-  // Socket connection
   // Socket connection
   useEffect(() => {
     if (!targetUserId) return;
@@ -80,15 +78,58 @@ const useChat = (targetUserId) => {
     };
 
     const handleReceive = (msg) => {
-      setMessages((prev) => {
+      setMessages((prev = []) => {
         const exists = prev.some((m) => m._id === msg._id);
         if (exists) return prev;
         return [...prev, msg];
       });
     };
 
+    const handleMessagesSeen = ({ seenBy }) => {
+      if (seenBy !== targetUserId) return;
+
+      setMessages((prev = []) => {
+        return prev.map((msg) => {
+          if (msg.senderId === currentUser._id) {
+            return {
+              ...msg,
+              seen: true,
+              seenAt: new Date(),
+            };
+          }
+          return msg;
+        });
+      });
+    };
+
+    const handleMessageDelivered = ({ messageId }) => {
+      console.log("DELIVERED EVENT RECEIVED:", messageId);
+      setMessages((prev = []) =>
+        prev.map((msg) =>
+          msg._id.toString() === messageId.toString()
+            ? { ...msg, delivered: true }
+            : msg,
+        ),
+      );
+    };
+
+    const handleBulkDelivered = ({ deliveredTo }) => {
+      if (deliveredTo !== targetUserId) return;
+
+      setMessages((prev = []) =>
+        prev.map((msg) =>
+          msg.senderId.toString() === currentUser._id.toString()
+            ? { ...msg, delivered: true }
+            : msg,
+        ),
+      );
+    };
+
     // Attach listeners FIRST
     socket.on("receive_message", handleReceive);
+    socket.on("messages_seen", handleMessagesSeen);
+    socket.on("message_delivered", handleMessageDelivered);
+    socket.on("message_delivered_bulk", handleBulkDelivered);
 
     socket.on("user_typing", () => {
       setIsTyping(true);
@@ -131,9 +172,13 @@ const useChat = (targetUserId) => {
       socket.off("online_users");
       socket.off("user_online");
       socket.off("user_offline");
+      socket.off("messages_seen", handleMessagesSeen);
+      socket.off("message_delivered", handleMessageDelivered);
+      socket.off("message_delivered_bulk", handleBulkDelivered);
     };
-  }, [targetUserId]);
+  }, [targetUserId, currentUser?._id]);
 
+  //fallback lastseen fetch
   useEffect(() => {
     if (!targetUserId) return;
 
@@ -192,8 +237,8 @@ const useChat = (targetUserId) => {
       `/messages/${targetUserId}?limit=10&cursor=${cursor}`,
     );
 
-    setMessages((prev) => {
-      const combined = [...res.data.data, ...prev];
+    setMessages((prev = []) => {
+      const combined = [...(res.data.data || []), ...prev];
 
       const unique = Array.from(
         new Map(combined.map((m) => [m._id, m])).values(),
