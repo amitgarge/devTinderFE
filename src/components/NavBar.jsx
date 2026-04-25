@@ -31,12 +31,22 @@ const NavBar = () => {
 
         {/* Right Section */}
         {user && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* User Name */}
+            <p className="hidden sm:block text-sm font-medium text-base-content">
+              Hi, {user.firstName}
+            </p>
             {/* Avatar Dropdown */}
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="avatar cursor-pointer">
                 <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                  <img alt="User" src={user.photoURL} />
+                  <img
+                    alt="User"
+                    src={
+                      user.photoURL ||
+                      "https://ui-avatars.com/api/?name=" + user.firstName
+                    }
+                  />
                 </div>
               </div>
 

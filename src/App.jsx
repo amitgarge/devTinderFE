@@ -29,7 +29,7 @@ function App() {
     <BrowserRouter>
       <NavigatorSetter />
 
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
 
       <ErrorBoundary>
         <Routes>
