@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    /* JavaScript Environment */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    /* Module System */
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    /* React */
+    "jsx": "react-jsx",
+
+    /* Migration Settings */
+    "allowJs": true,
+    "checkJs": false,
+
+    /* Strictness */
+    "strict": true,
+
+    /* Vite */
+    "noEmit": true,
+    "isolatedModules": true,
+
+    /* Interoperability */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Project Quality */
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    /* Nice to Have */
+    "resolveJsonModule": true,
+
+    /* Aliases */    
+    "paths": {
+      "@/*": ["./src/*"]
+    } 
+  },
+
+  "include": [
+    "src",
+    "vite.config.ts",
+    "vite.config.js"
+  ]
+}
