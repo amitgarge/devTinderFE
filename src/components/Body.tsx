@@ -1,15 +1,15 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/utils/hooks";
 import { addUser, removeUser } from "../utils/slices/userSlice";
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/axiosInstance";
 
 const Body = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const user = useSelector((store) => store.user);
+  const user = useAppSelector((store) => store.user);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
