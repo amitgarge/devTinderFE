@@ -17,12 +17,17 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    const message = error.response?.data?.message || "Something Went wrong";
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.message || "Something Went wrong";
 
-    if (error.response?.status === 401) {
-      navigateTo("/login");
+      if (error.response?.status === 401) {
+        navigateTo("/login");
+      }
+      toast.error(message);
+
+    } else {
+      toast.error("Something Went wrong!")
     }
-    toast.error(message);
     return Promise.reject(error);
   },
 );

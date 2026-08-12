@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/utils/hooks"
 import { addRequest, removeRequest } from "../utils/slices/requestSlice";
 import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
+import type { ConnectionRequest, ConnectionRequestStatus } from "@/types/request";
+import type { ApiResponse } from "@/types/api";
 
 const Requests = () => {
-  const dispatch = useDispatch();
-  const requestData = useSelector((store) => store.request);
+  const dispatch = useAppDispatch();
+  const requestData = useAppSelector((store) => store.request);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await axiosInstance.get("/user/requests/received");
+        const res = await axiosInstance.get<ApiResponse<ConnectionRequest[]>>("/user/requests/received");
         dispatch(addRequest(res.data.data));
       } catch {
         toast.error("Failed to load requests");
@@ -24,7 +26,7 @@ const Requests = () => {
     fetchRequests();
   }, [dispatch]);
 
-  const handleRequest = async (status, id) => {
+  const handleRequest = async (status:ConnectionRequestStatus, id:string) => {
     const promise = axiosInstance.post(
       `/request/review/${status}/${id}`,
       {}
@@ -59,7 +61,7 @@ const Requests = () => {
           Pending Requests
         </h1>
 
-        {requestData?.length === 0 && (
+        {requestData.length === 0 && (
           <div className="text-center text-base-content/60 text-lg">
             No pending requests
           </div>
@@ -67,9 +69,8 @@ const Requests = () => {
 
         <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
-          {requestData?.map((request) => {
+          {requestData.map((request) => {
             const {
-              _id,
               firstName,
               lastName,
               age,
@@ -103,7 +104,7 @@ const Requests = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {skills?.map((skill, index) => (
+                  {skills.map((skill, index) => (
                     <span
                       key={index}
                       className="badge badge-outline badge-primary"

@@ -1,23 +1,35 @@
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 import UserCard from "./UserCard";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "@/utils/hooks";
 import { addUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import type { Gender, User } from "@/types/user";
+import type { ApiResponse } from "@/types/api";
 
-const ProfileEdit = ({ user }) => {
+interface ProfileEditProps {
+  user: User
+}
+
+const genderOptions: Gender[] = [
+  "male",
+  "female",
+  "others"
+]
+
+const ProfileEdit = ({ user }: ProfileEditProps) => {
   const [firstName, setFirstName] = useState(user.firstName || "");
   const [lastName, setLastName] = useState(user.lastName || "");
   const [about, setAbout] = useState(user.about || "");
-  const [age, setAge] = useState(user.age || "");
-  const [gender, setGender] = useState(user.gender || "");
+  const [age, setAge] = useState<number | string>(user.age || "");
+  const [gender, setGender] = useState<Gender | "">(user.gender || "");
   const [skills, setSkills] = useState(user.skills || []);
   const [skillInput, setSkillInput] = useState("");
   const [photoURL, setPhotoURL] = useState(user.photoURL || "");
   const [saving, setSaving] = useState(false);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
 
@@ -25,7 +37,7 @@ const ProfileEdit = ({ user }) => {
     try {
       setSaving(true);
 
-      const promise = axiosInstance.patch("/profile/edit", {
+      const promise = axiosInstance.patch<ApiResponse<User>>("/profile/edit", {
         firstName,
         lastName,
         about,
@@ -50,7 +62,7 @@ const ProfileEdit = ({ user }) => {
     }
   };
 
-  const handleSkillKeyDown = (e) => {
+  const handleSkillKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
       const newSkill = skillInput.trim();
@@ -67,7 +79,7 @@ const ProfileEdit = ({ user }) => {
     }
   };
 
-  const removeSkill = (indexToRemove) => {
+  const removeSkill = (indexToRemove: number) => {
     setSkills(skills.filter((_, index) => index !== indexToRemove));
   };
 
@@ -107,7 +119,7 @@ const ProfileEdit = ({ user }) => {
                 <div>
                   <label className="label font-medium">Gender</label>
                   <div className="flex flex-wrap gap-6">
-                    {["male", "female", "others"].map((g) => (
+                    {genderOptions.map((g) => (
                       <label key={g} className="label cursor-pointer gap-2">
                         <input
                           type="radio"
@@ -115,7 +127,7 @@ const ProfileEdit = ({ user }) => {
                           value={g}
                           className="radio radio-primary"
                           checked={gender === g}
-                          onChange={(e) => setGender(e.target.value)}
+                          onChange={() => setGender(g)}
                         />
                         <span className="capitalize">{g}</span>
                       </label>
@@ -212,8 +224,8 @@ const ProfileEdit = ({ user }) => {
                 user={{
                   firstName,
                   lastName,
-                  age,
-                  gender,
+                  age: age === "" ? undefined : Number(age),
+                  gender: gender === "" ? undefined : gender,
                   photoURL,
                   about,
                   skills,

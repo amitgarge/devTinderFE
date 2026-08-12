@@ -1,10 +1,18 @@
-const UserCard = ({ user, showActions = false, onIgnore, onInterested }) => {
+import type { UserCardData } from "@/types/user";
+
+interface UserCardProps {
+  user: UserCardData;
+  showActions?: boolean;
+  onIgnore?: () => void;
+  onInterested?: () => void;
+}
+const UserCard = ({ user, showActions = false, onIgnore, onInterested }: UserCardProps) => {
   if (!user) return null;
 
   const { firstName, lastName, age, gender, photoURL, about, skills } = user;
 
-  const toProperCase = (word) =>
-    word?.toLowerCase().replace(/\b\w/g, (w) => w.toUpperCase());
+  const toProperCase = (word: string) =>
+    word.toLowerCase().replace(/\b\w/g, (w) => w.toUpperCase());
 
   return (
     <div className="w-full max-w-md mx-auto px-4">

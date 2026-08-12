@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addConnection } from "../utils/slices/connectionSlice";
-import axiosInstance from "../services/axiosInstance";
+import { useAppDispatch, useAppSelector } from "@/utils/hooks";
+import { addConnection } from "@/utils/slices/connectionSlice";
+import axiosInstance from "@/services/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import type { ApiResponse } from "@/types/api";
+import type { User } from "@/types/user";
 
 const Connections = () => {
-  const dispatch = useDispatch();
-  const connectionData = useSelector((store) => store.connection);
+  const dispatch = useAppDispatch();
+  const connectionData = useAppSelector((store) => store.connection);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchConnections = async () => {
-      const res = await axiosInstance.get("/user/connections");
+      const res = await axiosInstance.get<ApiResponse<User[]>>("/user/connections");
       dispatch(addConnection(res.data.data));
       setLoading(false);
     };
@@ -34,7 +36,7 @@ const Connections = () => {
         <h1 className="text-3xl font-bold mb-12 text-center">Friends</h1>
 
         {/* Empty State */}
-        {connectionData?.length === 0 && (
+        {connectionData.length === 0 && (
           <div className="text-center text-base-content/60 text-lg">
             You don’t have any connections yet.
           </div>
@@ -42,7 +44,7 @@ const Connections = () => {
 
         {/* Grid Layout */}
         <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {connectionData?.map((connection) => {
+          {connectionData.map((connection) => {
             const {
               _id,
               firstName,
@@ -78,7 +80,7 @@ const Connections = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {skills?.map((skill, index) => (
+                  {skills.map((skill, index) => (
                     <span
                       key={index}
                       className="badge badge-outline badge-primary"

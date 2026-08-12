@@ -1,17 +1,20 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../utils/hooks";
 import { addFeed, removeUserFromFeed } from "../utils/slices/feedSlice";
 import { useEffect, useState } from "react";
 import UserCard from "./UserCard";
 import axiosInstance from "../services/axiosInstance";
+import type { User } from "@/types/user";
+import type { ApiResponse } from "@/types/api";
+import { ConnectionRequestStatus } from "@/types/request";
 
 const Feed = () => {
-  const dispatch = useDispatch();
-  const feed = useSelector((store) => store.feed);
+  const dispatch = useAppDispatch();
+  const feed = useAppSelector((store) => store.feed);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadFeed = async () => {
-      const res = await axiosInstance.get("/user/feed");
+      const res = await axiosInstance.get<ApiResponse<User[]>>("/user/feed");
       dispatch(addFeed(res.data.data));
       setLoading(false);
     };
@@ -19,7 +22,7 @@ const Feed = () => {
     loadFeed();
   }, [dispatch]);
 
-  const handleRequest = async (status, userId) => {
+  const handleRequest = async (status: ConnectionRequestStatus, userId: string) => {
     await axiosInstance.post(`/request/send/${status}/${userId}`);
     dispatch(removeUserFromFeed(userId));
   };
@@ -32,7 +35,7 @@ const Feed = () => {
     );
   }
 
-  if (!feed || feed.length === 0) {
+  if (feed.length === 0) {
     return (
       <div className="min-h-screen bg-linear-to-br from-base-100 to-base-200 flex items-center justify-center">
         <div className="text-center space-y-3">
