@@ -1,12 +1,12 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/utils/hooks";
 import { Link, useNavigate } from "react-router-dom";
 import { removeUser } from "../utils/slices/userSlice";
 import axiosInstance from "../services/axiosInstance";
 import { disconnectSocket } from "../services/socket";
 
 const NavBar = () => {
-  const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
+  const user = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogout = async () => {

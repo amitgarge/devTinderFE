@@ -42,7 +42,7 @@ export default defineConfig([
 
   // Vitest Config (ONLY for test files)
   {
-    files: ["**/*.test.{js,jsx}"],
+    files: ["**/*.test.{js,jsx,ts,tsx}"],
     plugins: { vitest },
     languageOptions: {
       globals: vitest.environments.env.globals,

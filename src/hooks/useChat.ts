@@ -1,32 +1,36 @@
 import { useEffect, useState, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppSelector, useAppDispatch } from "@/utils/hooks";
 import axiosInstance from "../services/axiosInstance";
 import { connectSocket } from "../services/socket";
 import { addConnection } from "../utils/slices/connectionSlice";
+import type { LastSeenResponse, Message, MessagesResponse } from "@/types/message";
+import type { ApiResponse } from "@/types/api";
+import type { User } from "@/types/user";
+import { MessageDeliveredPayload } from "@/types/socket";
 
-const useChat = (targetUserId) => {
-  const dispatch = useDispatch();
+const useChat = (targetUserId: string | undefined) => {
+  const dispatch = useAppDispatch();
 
-  const currentUser = useSelector((store) => store.user);
+  const currentUser = useAppSelector((store) => store.user);
 
-  const connections = useSelector((store) => store.connection);
+  const connections = useAppSelector((store) => store.connection);
 
-  const targetUser = connections?.find((user) => user._id === targetUserId);
+  const targetUser = connections.find((user) => user._id === targetUserId);
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const [message, setMessage] = useState("");
 
   const [isTyping, setIsTyping] = useState(false);
 
-  const typingTimeoutRef = useRef(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isOnline, setIsOnline] = useState(false);
 
   // realtime lastSeen only
-  const [socketLastSeen, setSocketLastSeen] = useState(null);
+  const [socketLastSeen, setSocketLastSeen] = useState<string | Date | null>(null);
 
-  const [cursor, setCursor] = useState(null);
+  const [cursor, setCursor] = useState<string | null>(null);
 
   const [hasMore, setHasMore] = useState(true);
 
@@ -36,9 +40,9 @@ const useChat = (targetUserId) => {
   // Load connections if missing
   useEffect(() => {
     const fetchConnections = async () => {
-      if (connections && connections.length > 0) return;
+      if (connections.length > 0) return;
 
-      const res = await axiosInstance.get("/user/connections");
+      const res = await axiosInstance.get<ApiResponse<User[]>>("/user/connections");
 
       dispatch(addConnection(res.data.data));
     };
@@ -51,9 +55,9 @@ const useChat = (targetUserId) => {
     if (!targetUserId) return;
 
     const fetchMessages = async () => {
-      const res = await axiosInstance.get(`/messages/${targetUserId}?limit=10`);
+      const res = await axiosInstance.get<MessagesResponse>(`/messages/${targetUserId}?limit=10`);
 
-      setMessages(res.data.data || []);
+      setMessages(res.data.data);
       setCursor(res.data.nextCursor);
 
       setHasMore(!!res.data.nextCursor);
@@ -77,20 +81,20 @@ const useChat = (targetUserId) => {
       requestPresence();
     };
 
-    const handleReceive = (msg) => {
-      setMessages((prev = []) => {
+    const handleReceive = (msg: Message) => {
+      setMessages((prev) => {
         const exists = prev.some((m) => m._id === msg._id);
         if (exists) return prev;
         return [...prev, msg];
       });
     };
 
-    const handleMessagesSeen = ({ seenBy }) => {
+    const handleMessagesSeen = ({ seenBy }: { seenBy: string }) => {
       if (seenBy !== targetUserId) return;
 
-      setMessages((prev = []) => {
+      setMessages((prev) => {
         return prev.map((msg) => {
-          if (msg.senderId === currentUser._id) {
+          if (msg.senderId === currentUser?._id) {
             return {
               ...msg,
               seen: true,
@@ -102,23 +106,26 @@ const useChat = (targetUserId) => {
       });
     };
 
-    const handleMessageDelivered = ({ messageId }) => {
+    const handleMessageDelivered = ({
+      messageId,
+    }: MessageDeliveredPayload) => {
       console.log("DELIVERED EVENT RECEIVED:", messageId);
-      setMessages((prev = []) =>
+
+      setMessages((prev) =>
         prev.map((msg) =>
-          msg._id.toString() === messageId.toString()
+          msg._id === messageId
             ? { ...msg, delivered: true }
             : msg,
         ),
       );
     };
 
-    const handleBulkDelivered = ({ deliveredTo }) => {
+    const handleBulkDelivered = ({ deliveredTo }: { deliveredTo: string }) => {
       if (deliveredTo !== targetUserId) return;
 
-      setMessages((prev = []) =>
+      setMessages((prev) =>
         prev.map((msg) =>
-          msg.senderId.toString() === currentUser._id.toString()
+          msg.senderId.toString() === currentUser?._id?.toString()
             ? { ...msg, delivered: true }
             : msg,
         ),
@@ -131,30 +138,42 @@ const useChat = (targetUserId) => {
     socket.on("message_delivered", handleMessageDelivered);
     socket.on("message_delivered_bulk", handleBulkDelivered);
 
-    socket.on("user_typing", () => {
+    const handleUserTyping = () => {
       setIsTyping(true);
-    });
+    };
 
-    socket.on("user_stop_typing", () => {
+    const handleUserStopTyping = () => {
       setIsTyping(false);
-    });
+    };
 
-    socket.on("online_users", (users) => {
+    const handleOnlineUsers = (users: string[]) => {
       setIsOnline(users.includes(targetUserId));
-    });
+    };
 
-    socket.on("user_online", ({ userId }) => {
+    const handleUserOnline = ({ userId }: { userId: string }) => {
       if (userId === targetUserId) {
         setIsOnline(true);
       }
-    });
+    };
 
-    socket.on("user_offline", ({ userId, lastSeen }) => {
+    const handleUserOffline = ({
+      userId,
+      lastSeen,
+    }: {
+      userId: string;
+      lastSeen: string;
+    }) => {
       if (userId === targetUserId) {
         setIsOnline(false);
         setSocketLastSeen(lastSeen);
       }
-    });
+    };
+
+    socket.on("user_typing", handleUserTyping);
+    socket.on("user_stop_typing", handleUserStopTyping);
+    socket.on("online_users", handleOnlineUsers);
+    socket.on("user_online", handleUserOnline);
+    socket.on("user_offline", handleUserOnline);
 
     // If socket just connected
     socket.on("connect", joinRoomAndSync);
@@ -167,11 +186,11 @@ const useChat = (targetUserId) => {
     return () => {
       socket.off("connect", joinRoomAndSync);
       socket.off("receive_message", handleReceive);
-      socket.off("user_typing");
-      socket.off("user_stop_typing");
-      socket.off("online_users");
-      socket.off("user_online");
-      socket.off("user_offline");
+      socket.off("user_typing", handleUserTyping);
+      socket.off("user_stop_typing", handleUserStopTyping);
+      socket.off("online_users", handleOnlineUsers);
+      socket.off("user_online", handleUserOnline);
+      socket.off("user_offline", handleUserOffline);
       socket.off("messages_seen", handleMessagesSeen);
       socket.off("message_delivered", handleMessageDelivered);
       socket.off("message_delivered_bulk", handleBulkDelivered);
@@ -186,7 +205,7 @@ const useChat = (targetUserId) => {
     if (!isOnline && !socketLastSeen) {
       const fetchLastSeen = async () => {
         try {
-          const res = await axiosInstance.get(
+          const res = await axiosInstance.get<LastSeenResponse>(
             `/user/last-seen/${targetUserId}`,
           );
           setSocketLastSeen(res.data.lastSeen);
@@ -199,14 +218,18 @@ const useChat = (targetUserId) => {
     }
   }, [targetUserId, isOnline, socketLastSeen]);
 
-  const handleTyping = (value) => {
+  const handleTyping = (value: string) => {
     setMessage(value);
+
+    if (!targetUserId) return;
 
     const socket = connectSocket();
 
     socket.emit("typing", { targetUserId });
 
-    clearTimeout(typingTimeoutRef.current);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit("stop_typing", {
@@ -217,7 +240,7 @@ const useChat = (targetUserId) => {
 
   const sendMessage = () => {
     if (!message.trim() || !targetUserId) return;
-    
+
     const socket = connectSocket();
 
     socket.emit("send_message", {
@@ -233,12 +256,12 @@ const useChat = (targetUserId) => {
   const loadOlderMessages = async () => {
     if (!cursor) return;
 
-    const res = await axiosInstance.get(
+    const res = await axiosInstance.get<MessagesResponse>(
       `/messages/${targetUserId}?limit=10&cursor=${cursor}`,
     );
 
     setMessages((prev = []) => {
-      const combined = [...(res.data.data || []), ...prev];
+      const combined = [...res.data.data, ...prev];
 
       const unique = Array.from(
         new Map(combined.map((m) => [m._id, m])).values(),

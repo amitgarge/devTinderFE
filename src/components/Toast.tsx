@@ -1,4 +1,10 @@
-const Toast = ({ message, type = "success", onClose }) => {
+type ToastType = "success" | "error" | "warning" | "info";
+interface ToastProps {
+  message: string;
+  type?: ToastType;
+  onClose: () => void;
+}
+const Toast = ({ message, type = "success", onClose }: ToastProps) => {
   return (
     <div className="toast toast-top toast-end z-50">
       <div className={`alert alert-${type}`}>

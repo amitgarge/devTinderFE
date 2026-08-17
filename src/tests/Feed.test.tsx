@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, describe, expect, test } from "vitest";
 
 // 🔥 Mock axios BEFORE imports
 vi.mock("../services/axiosInstance", () => ({
@@ -28,7 +28,7 @@ vi.mock("../services/axiosInstance", () => ({
 import {
   render,
   screen,
-  fireEvent,  
+  fireEvent,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
 import { Provider } from "react-redux";
@@ -45,7 +45,14 @@ function renderFeed() {
       user: userReducer,
     },
     preloadedState: {
-      user: { _id: "123", firstName: "Amit" },
+      user: {
+        _id: "123",
+        firstName: "Amit",
+        lastName: "Test",
+        about: "Test user",
+        skills: [],
+        photoURL: "https://dummyimage.com/200x200",
+      },
       feed: [],
     },
   });

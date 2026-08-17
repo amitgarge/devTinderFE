@@ -5,6 +5,8 @@ import { useAppDispatch, useAppSelector } from "@/utils/hooks";
 import { addUser, removeUser } from "../utils/slices/userSlice";
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/axiosInstance";
+import { ApiResponse } from "@/types/api";
+import { User } from "@/types/user";
 
 const Body = () => {
   const dispatch = useAppDispatch();
@@ -16,7 +18,7 @@ const Body = () => {
     const fetchUser = async () => {
       try {
         if (!user) {
-          const res = await axiosInstance.get("/profile/view");
+          const res = await axiosInstance.get<ApiResponse<User>>("/profile/view");
           dispatch(addUser(res.data.data));
         }
       } catch {
@@ -28,7 +30,7 @@ const Body = () => {
     };
 
     fetchUser();
-  }, []);
+  }, [user, dispatch, navigate]);
 
   if (loading) {
     return (

@@ -3,8 +3,8 @@ import useChat from "../hooks/useChat";
 import { useEffect, useRef } from "react";
 
 const Chat = () => {
-  const containerRef = useRef(null);
-  const bottomRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
   const loadingOlderRef = useRef(false);
   const prevScrollHeightRef = useRef(0);
 
@@ -98,6 +98,7 @@ const Chat = () => {
               <button
                 onClick={() => {
                   const container = containerRef.current;
+                  if (!container) return;
 
                   loadingOlderRef.current = true;
 
@@ -112,84 +113,82 @@ const Chat = () => {
             </div>
           )}
 
-          {Array.isArray(messages) &&
-            messages.map((msg, index) => {
-              const isMe = msg.senderId === currentUser?._id;
+          {messages.map((msg, index) => {
+            const isMe = msg.senderId === currentUser?._id;
 
-              // Get current message date
-              const currentDate = new Date(msg.createdAt).toDateString();
+            // Get current message date
+            const currentDate = new Date(msg.createdAt).toDateString();
 
-              // Get previous message date
-              const prevDate =
-                index > 0
-                  ? new Date(messages[index - 1].createdAt).toDateString()
-                  : null;
+            // Get previous message date
+            const prevDate =
+              index > 0
+                ? new Date(messages[index - 1].createdAt).toDateString()
+                : null;
 
-              const showDateSeparator = currentDate !== prevDate;
+            const showDateSeparator = currentDate !== prevDate;
 
-              // Format label (Today / Yesterday / Date)
-              const formatDateLabel = (dateStr) => {
-                const today = new Date();
-                const date = new Date(dateStr);
+            // Format label (Today / Yesterday / Date)
+            const formatDateLabel = (dateStr: string) => {
+              const today = new Date();
+              const date = new Date(dateStr);
 
-                const isToday = date.toDateString() === today.toDateString();
+              const isToday = date.toDateString() === today.toDateString();
 
-                const yesterday = new Date();
-                yesterday.setDate(today.getDate() - 1);
+              const yesterday = new Date();
+              yesterday.setDate(today.getDate() - 1);
 
-                const isYesterday =
-                  date.toDateString() === yesterday.toDateString();
+              const isYesterday =
+                date.toDateString() === yesterday.toDateString();
 
-                if (isToday) return "Today";
-                if (isYesterday) return "Yesterday";
+              if (isToday) return "Today";
+              if (isYesterday) return "Yesterday";
 
-                return date.toLocaleDateString();
-              };
+              return date.toLocaleDateString();
+            };
 
-              return (
-                <div key={msg._id}>
-                  {/* Date Separator */}
-                  {showDateSeparator && (
-                    <div className="text-center my-2">
-                      <span className="text-xs bg-base-300 px-3 py-1 rounded-full">
-                        {formatDateLabel(msg.createdAt)}
-                      </span>
+            return (
+              <div key={msg._id}>
+                {/* Date Separator */}
+                {showDateSeparator && (
+                  <div className="text-center my-2">
+                    <span className="text-xs bg-base-300 px-3 py-1 rounded-full">
+                      {formatDateLabel(msg.createdAt)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Message */}
+                <div className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+                  {!isMe && (
+                    <div className="chat-image avatar">
+                      <div className="w-8 rounded-full">
+                        <img src={targetUser?.photoURL} />
+                      </div>
                     </div>
                   )}
 
-                  {/* Message */}
-                  <div className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
-                    {!isMe && (
-                      <div className="chat-image avatar">
-                        <div className="w-8 rounded-full">
-                          <img src={targetUser?.photoURL} />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="chat-bubble flex flex-col gap-1 leading-tight">
-                      <span>{msg.text}</span>
-                      <span className="text-[10px] opacity-60 text-right">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {/* Ticks (only for my messages) */}
-                      {isMe && (
-                        <span
-                          className={`text-xs ${
-                            msg.seen ? "text-blue-500" : "text-gray-400"
+                  <div className="chat-bubble flex flex-col gap-1 leading-tight">
+                    <span>{msg.text}</span>
+                    <span className="text-[10px] opacity-60 text-right">
+                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {/* Ticks (only for my messages) */}
+                    {isMe && (
+                      <span
+                        className={`text-xs ${msg.seen ? "text-blue-500" : "text-gray-400"
                           }`}
-                        >
-                          {msg.seen ? "✔✔" : "✔"}
-                        </span>
-                      )}
-                    </div>
+                      >
+                        {msg.seen ? "✔✔" : "✔"}
+                      </span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
 
           <div ref={bottomRef} />
         </div>

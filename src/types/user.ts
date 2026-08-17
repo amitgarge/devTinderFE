@@ -8,7 +8,8 @@ export interface User {
     gender?: Gender;
     about: string;
     skills: string[];
-    photoURL: string
+    photoURL: string;
+    lastSeen?: string | Date;
 }
 
 export type UserCardData = Pick<User, "firstName" | "lastName" | "age" | "gender" | "about" | "skills" | "photoURL"> 

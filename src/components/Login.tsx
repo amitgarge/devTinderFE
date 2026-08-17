@@ -1,13 +1,49 @@
-import { useState, useRef } from "react";
+import { useState, useRef, type ChangeEvent, type FocusEvent } from "react";
 import { addUser } from "../utils/slices/userSlice";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "@/utils/hooks";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import toast from "react-hot-toast";
+import type { ApiResponse } from "@/types/api";
+import type { User } from "@/types/user";
+
+interface LoginFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string
+}
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+interface SignupPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+type AuthPayload = LoginPayload | SignupPayload;
+
+type FormField = keyof LoginFormData;
+
+type PasswordStrength = "Weak" | "Medium" | "Strong";
 
 const Login = () => {
   const [isLoginForm, setIsLoginForm] = useState(true);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -15,20 +51,20 @@ const Login = () => {
     confirmPassword: "",
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-  const firstNameRef = useRef(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
 
   // ---------------- PASSWORD STRENGTH ----------------
-  const getPasswordStrength = (password) => {
+  const getPasswordStrength = (password: string): PasswordStrength => {
     if (password.length < 6) return "Weak";
     if (password.match(/^(?=.*[A-Z])(?=.*\d).{8,}$/)) return "Strong";
     return "Medium";
@@ -37,7 +73,7 @@ const Login = () => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   // ---------------- VALIDATION ----------------
-  const validateField = (name, value) => {
+  const validateField = (name: FormField, value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let message = "";
 
@@ -80,13 +116,13 @@ const Login = () => {
   };
 
   const validateAll = () => {
-    const fields = isLoginForm
+    const fields: FormField[] = isLoginForm
       ? ["email", "password"]
       : ["firstName", "lastName", "email", "password", "confirmPassword"];
 
     let isValid = true;
 
-    for (let field of fields) {
+    for (const field of fields) {
       const valid = validateField(field, formData[field]);
       if (!valid && isValid) {
         // Auto-focus first invalid field
@@ -101,25 +137,27 @@ const Login = () => {
   };
 
   // ---------------- HANDLERS ----------------
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const field = name as FormField;
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [field]: value,
     }));
 
     // Clear error while typing
-    if (errors[name]) {
+    if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: "",
+        [field]: "",
       }));
     }
   };
 
-  const handleBlur = (e) => {
-    validateField(e.target.name, e.target.value);
+  const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+    const field = e.target.name as FormField;
+    validateField(field, e.target.value);
   };
 
   const submitForm = async () => {
@@ -130,16 +168,16 @@ const Login = () => {
 
       const endpoint = isLoginForm ? "/auth/login" : "/auth/signup";
 
-      const payload = isLoginForm
+      const payload: AuthPayload = isLoginForm
         ? { email: formData.email, password: formData.password }
         : {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            password: formData.password,
-          };
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        };
 
-      const res = await axiosInstance.post(endpoint, payload);
+      const res = await axiosInstance.post<ApiResponse<User>>(endpoint, payload);
 
       dispatch(addUser(res.data.data));
       toast.success(
@@ -240,13 +278,12 @@ const Login = () => {
 
                 {!isLoginForm && formData.password && (
                   <p
-                    className={`text-sm mt-1 ${
-                      passwordStrength === "Weak"
-                        ? "text-error"
-                        : passwordStrength === "Medium"
-                          ? "text-warning"
-                          : "text-success"
-                    }`}
+                    className={`text-sm mt-1 ${passwordStrength === "Weak"
+                      ? "text-error"
+                      : passwordStrength === "Medium"
+                        ? "text-warning"
+                        : "text-success"
+                      }`}
                   >
                     Strength: {passwordStrength}
                   </p>
@@ -264,9 +301,8 @@ const Login = () => {
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm Password"
-                      className={`input input-bordered w-full pr-16 ${
-                        errors.confirmPassword ? "input-error" : ""
-                      }`}
+                      className={`input input-bordered w-full pr-16 ${errors.confirmPassword ? "input-error" : ""
+                        }`}
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       onBlur={handleBlur}

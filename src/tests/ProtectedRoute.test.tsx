@@ -1,11 +1,13 @@
+import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import { MemoryRouter, Routes, Route } from "react-router";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import userReducer from "../utils/slices/userSlice";
+import type { User } from "@/types/user";
 
-function renderWithStore(userState) {
+function renderWithStore(userState: User | null) {
   const store = configureStore({
     reducer: { user: userReducer },
     preloadedState: { user: userState },
@@ -38,8 +40,14 @@ describe("ProtectedRoute", () => {
   });
 
   test("renders children if user is authenticated", () => {
-    renderWithStore({ _id: "123", firstName: "Amit" });
-
+    renderWithStore({
+      _id: "123",
+      firstName: "Amit",
+      lastName: "Garge",
+      about: "Test user",
+      skills: [],
+      photoURL: "",
+    });
     expect(screen.getByText("Protected Content")).toBeInTheDocument();
   });
 });
