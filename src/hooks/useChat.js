@@ -160,7 +160,7 @@ const useChat = (targetUserId) => {
     socket.on("connect", joinRoomAndSync);
 
     // If socket is ALREADY connected
-    if (socket.connected) {
+    if (socket.connected) {      
       joinRoomAndSync();
     }
 
@@ -216,8 +216,8 @@ const useChat = (targetUserId) => {
   };
 
   const sendMessage = () => {
-    if (!message.trim()) return;
-
+    if (!message.trim() || !targetUserId) return;
+    
     const socket = connectSocket();
 
     socket.emit("send_message", {
